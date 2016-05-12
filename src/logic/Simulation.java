@@ -232,7 +232,7 @@ public class Simulation {
 		int bestObj2Front1 = bestObj2.getCostFitness();
 		int worstObj1Front1 = worstObj1.getDistanceFitness();
 		int worstObj2Front1 = worstObj2.getCostFitness();
-		set = new Settings(0.6, 0.2, 100, 600);
+		set = new Settings(0.6, 0.2, 100, 2000);
 		population = new Population(set);
 		generationNr = 0;
 		runLoop();
@@ -241,7 +241,7 @@ public class Simulation {
 		int bestObj2Front2 = bestObj2.getCostFitness();
 		int worstObj1Front2 = worstObj1.getDistanceFitness();
 		int worstObj2Front2 = worstObj2.getCostFitness();
-		set = new Settings(0.0, 0.4, 200, 600);
+		set = new Settings(0.0, 0.4, 200, 2000);
 		population = new Population(set);
 		generationNr = 0;
 		runLoop();

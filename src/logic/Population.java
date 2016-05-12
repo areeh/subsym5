@@ -42,13 +42,12 @@ public class Population {
 			return null;
 		} else {
 			
-			if (containsGenotype(children, kidPair.x.genotype) || containsGenotype(children, kidPair.y.genotype) || kidPair.x.equals(kidPair.y)
+			while (containsGenotype(children, kidPair.x.genotype) || containsGenotype(children, kidPair.y.genotype) || kidPair.x.equals(kidPair.y)
 					|| containsGenotype(adults, kidPair.x.genotype) || containsGenotype(adults, kidPair.y.genotype)) {
 				kidPair = crossover(parents);
-			} else {
-				children.add(kidPair.x);
-				children.add(kidPair.y);			
 			}
+			children.add(kidPair.x);
+			children.add(kidPair.y);			
 			
 			return kidPair;
 		}
@@ -437,9 +436,13 @@ public class Population {
 				nextDist = Math.abs(front.get(i+1).getDistanceFitness()-front.get(i).getDistanceFitness());
 				
 				if (nextDist == 0) {
-					front.get(i).mutate();
-					front.get(i).mutate();
+					double chance = rng.nextDouble();
+					if (chance > 0.90) {
+						front.get(i).mutate();					
+					}
 					/*
+					front.get(i).mutate();
+					front.get(i).mutate();
 					System.out.println("Distance between individuals 0");
 					System.out.println(front.get(i+1).getDistanceFitness());
 					System.out.println(front.get(i).getDistanceFitness());
@@ -536,6 +539,14 @@ public class Population {
 			if (parents.x.getGenotype().equals(parents.y.getGenotype())) {
 				System.out.println("Got same parents");
 				System.err.println("SAME PARENTS");
+				double chance = rng.nextDouble();
+				if (chance > 0.90) {
+					parents.y.mutate();					
+				}
+				if (parents.x.id == parents.y.id) {
+					System.out.println("Got true duplicate (same ID)");
+					System.err.println("TRUE DUPLICATE");
+				}
 			}
 			
 			Pair<Individual, Individual> crossoverAttempt = addCrossover(parents);
@@ -558,15 +569,21 @@ public class Population {
 	
 	private List<Individual> selectGroup(List<Individual> participants) {
 		List<Individual> group = new ArrayList<Individual>(set.getK());
+		List<Integer> prevChances = new ArrayList<Integer>();
 		if (participants.size() != set.getGenerationSize()) {
 			System.out.println("Got wrong number of participants selectGroup");
 			System.err.println("WRONG PARTICIPANT NUMBER");
 		}
+		int chance = -1;
 		for (int i=0; i<set.getK(); i++) {
-			int chance = rng.nextInt(participants.size());
+			chance = rng.nextInt(participants.size());
+			while (prevChances.contains(chance)) {
+				chance = rng.nextInt(participants.size());
+			}
+			prevChances.add(chance);
 			group.add(participants.get(chance));			
 		}
-		if (group.size() < 2) {
+		if (group.size() < set.getK()) {
 			System.out.println("Too small group made selectGroup");
 		}
 		return group;
@@ -574,30 +591,35 @@ public class Population {
 	
 	private Pair<Individual, Individual> selectWinnerPair(List<Individual> participants) {
 		List<Individual> group1 = selectGroup(participants);
-		List<Individual> group2 = selectGroup(participants);
-		Individual winner1 = selectWinner(group1);
+		//List<Individual> group2 = selectGroup(participants);
+		Pair<Individual, Individual> winner1 = selectWinners(group1);
+		/*
 		Individual winner2 = selectWinner(group2);
 		while (winner1.getGenotype().equals(winner2.getGenotype())) {
 			winner2 = selectWinner(selectGroup(participants));
 		}
+		*/
 		
-		return new Pair<Individual, Individual>(winner1, winner2);
+		return new Pair<Individual, Individual>(winner1.x, winner1.y);
 	}
 	
 	private Pair<Individual, Individual> selectWinnerPairCrowdComparison(List<Individual> participants) {
 		List<Individual> group1 = selectGroup(participants);
-		List<Individual> group2 = selectGroup(participants);
-		Individual winner1 = selectWinnerCrowdedComparison(group1);
+		//List<Individual> group2 = selectGroup(participants);
+		Pair<Individual, Individual> winner1 = selectWinnersCrowdedComparison(group1);
+		/*
 		Individual winner2 = selectWinnerCrowdedComparison(group2);
 		while (winner1.getGenotype().equals(winner2.getGenotype())) {
 			winner2 = selectWinnerCrowdedComparison(selectGroup(participants));
 		}
+		*/
 		
-		return new Pair<Individual, Individual>(winner1, winner2);
+		return new Pair<Individual, Individual>(winner1.x, winner1.y);
 	}
 	
-	private Individual selectWinner(List<Individual> group) {
-		Individual res;
+	private Pair<Individual, Individual> selectWinners(List<Individual> group) {
+		Individual winner1;
+		Individual winner2;
 		double chance = rng.nextDouble();
 		
 		if (chance > set.getEChance()) {
@@ -605,17 +627,24 @@ public class Population {
 				ind.setSortVal("rank");
 			}
 			Collections.sort(group);
-			res = group.get(0);
+			winner1 = group.get(0);
+			winner2 = group.get(1);
 		} else {
-			int rand = rng.nextInt(group.size());
-			res = group.get(rand);
+			int rand2 = rng.nextInt(group.size());
+			int rand1 = rng.nextInt(group.size());
+			winner1 = group.get(rand1);
+			while (rand2 == rand1) {
+				rand2 = rng.nextInt(group.size());
+			}
+			winner2 = group.get(rand2);
 		}
-		return res;
+		return new Pair<Individual, Individual>(winner1, winner2);
 	}
 	
-	private Individual selectWinnerCrowdedComparison(List<Individual> group) {
+	private Pair<Individual, Individual> selectWinnersCrowdedComparison(List<Individual> group) {
 		List<Individual> group2 = new ArrayList<Individual>();
-		Individual res;
+		Individual winner1;
+		Individual winner2;
 		double chance = rng.nextDouble();
 		
 		if (chance > set.getEChance()) {
@@ -630,19 +659,26 @@ public class Population {
 				}
 			}
 			if (group2.size() < 2) {
-				res = group2.get(group2.size()-1);
+				winner1 = group.get(0);
+				winner2 = group.get(1);
 			} else {
 				for (Individual ind : group2) {
 					ind.setSortVal("crowdDist");
 				}
 				Collections.sort(group2);
-				res = group2.get(group2.size()-1);
+				winner1 = group2.get(group2.size()-1);
+				winner2 = group2.get(group2.size()-2);
 			}
 		} else {
-			int rand = rng.nextInt(group.size());
-			res = group.get(rand);
+			int rand2 = rng.nextInt(group.size());
+			int rand1 = rng.nextInt(group.size());
+			winner1 = group.get(rand1);
+			while (rand2 == rand1) {
+				rand2 = rng.nextInt(group.size());
+			}
+			winner2 = group.get(rand2);
 		}
-		return res;
+		return new Pair<Individual, Individual>(winner1, winner2);
 		
 	}
 	

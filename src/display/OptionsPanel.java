@@ -102,7 +102,7 @@ public class OptionsPanel extends JPanel implements Observer {
 		this.add(new JLabel("Mutation Rate"));
 		this.add(mutateRate);
 		
-		nrOfGenerations = new JSpinner(new SpinnerNumberModel(sim.getSettings().getNrOfGenerations(), 1, 1000, 1));
+		nrOfGenerations = new JSpinner(new SpinnerNumberModel(sim.getSettings().getNrOfGenerations(), 1, 5000, 1));
 		nrOfGenerations.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				sim.getSettings().setNrOfGenerations(((SpinnerNumberModel)nrOfGenerations.getModel()).getNumber().intValue());

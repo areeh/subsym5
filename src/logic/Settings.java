@@ -32,12 +32,12 @@ public class Settings {
 		genotypeSize = 48*6;
 		crossoverRate = 0.9;
 		mutateRate = 0.1;
-		generationSize = 200;
-		nrOfGenerations = 1000;
-		setPointsCrossover(10);
+		generationSize = 100;
+		nrOfGenerations = 2000;
+		setPointsCrossover(20);
 		
-		k = 60;
-		eChance = 0.05d; //0-1
+		k = 5;
+		eChance = 0.0d; //0-1
 		
 		
 		ReadXLSX reader = new ReadXLSX();
